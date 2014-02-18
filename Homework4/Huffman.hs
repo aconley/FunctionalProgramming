@@ -14,7 +14,7 @@ module Huffman (HuffmanTree,
 -}
 
 import Data.List (groupBy, sort, sortBy, insert)
-import Control.Applicative ((<$>), (<*>), pure)
+import Control.Applicative ((<$>), (<*>))
 import qualified Data.Map as Map
 
 data HuffmanTree = Leaf { char :: Char, weight :: Int } 
@@ -151,14 +151,12 @@ createHuffmanMap :: HuffmanTree -> HuffmanMap
 createHuffmanMap h = Map.fromList p
     where p = [(c, reverse $ encodeSingleUnsafe c h) | c <- chars h]
 
--- Combine two Maybe HuffmanCodes into one
-combineHuffCode :: Maybe HuffmanCode -> Maybe HuffmanCode -> Maybe HuffmanCode
-combineHuffCode a b = (++) <$> a <*> b
-
 -- Quick encoding of a string
+--  codemap is [Maybe HuffmanCode].  sequence turns this into
+--   Maybe [HuffmanCode], respecting failure, then we concat using <$> (fmap)
 quickEncode :: HuffmanMap -> String -> Maybe HuffmanCode
 quickEncode h [] = Nothing
 quickEncode hm str = 
     let codemap = map (\c -> Map.lookup c hm) str
-    in foldr1 combineHuffCode codemap         
+    in concat <$> sequence codemap
 
