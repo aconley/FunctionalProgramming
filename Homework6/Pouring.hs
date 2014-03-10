@@ -12,8 +12,8 @@ import Data.Array (Array(..), elems, (!), listArray, (//))
 -- Both of these are assumed to start at index 0
 -- They are functionally identical, but given different
 --  types to avoid confusion
-data Capacity = Capacity { capacity :: Array Int Int }
-data State = State { state :: Array Int Int }
+data Capacity = Capacity { getCapacity :: Array Int Int }
+data State = State { getState :: Array Int Int }
 
 listToCapacity :: [Int] -> Capacity
 listToCapacity cs = 
@@ -22,10 +22,10 @@ listToCapacity cs =
     in Capacity arr
 
 getNCapacity :: Capacity -> Int
-getNCapacity c = length $ elems $ capacity c
+getNCapacity c = length $ elems $ getCapacity c
 
 getNState :: State -> Int
-getNState s = length $ elems $ state s
+getNState s = length $ elems $ getState s
 
 instance (Show) Capacity where
     show cap@(Capacity a) = 
@@ -75,30 +75,44 @@ applyMove (Capacity cs) (State ss) (Pour from to) =
         newto = (to, state_to + amount)
     in State (ss // [newfrom, newto])
 
+-- A move list is just a list of moves with the
+-- most recent move at the end.
+type MoveList = [Move]
+
+showMoves :: MoveList -> String
+showMoves [] = ""
+showMoves mvs = concat $ intersperse ", " $ reverse $ map show mvs
+
+-- Given a capacity and an initial position, give the
+-- final state for a MoveList
+getEndState :: Capacity -> State -> MoveList -> State
+getEndState _ init [] = init
+getEndState cap init mvs = foldr (\mv st -> applyMove cap st mv) init mvs
+
 -- A path is a list of moves from an initial state
---  The most recent move is at the end
--- For convenience, we keep the capacity as well
-data Path = Path Capacity State [Move]
+--  The most recent move is at the start
+-- For convenience, we keep the capacity and final state as well
+data Path = Path { capacity :: Capacity, initState ::  State,
+                   moves :: MoveList, finalState :: State }
 
 instance (Show) Path where
-    show path@(Path cap init moves) =
-        let final = getEndState path
-            movestr = concat $ intersperse ", " $ reverse $ map show moves
-        in movestr ++ " --> " ++ show final
+    show path@(Path cap init moves final) =
+        showMoves moves ++ " --> " ++ show final
 
--- Get the final state of a series of moves
---  from the initial state after a path to a final
---  state
-getEndState :: Path -> State
-getEndState (Path cap init []) = init
-getEndState (Path cap init path) = 
-    foldr (\mv st -> applyMove cap st mv) init path
+-- Add a new move to a path
+addMove :: Path -> Move -> Path
+addMove path@(Path cap _ moves final) mv =
+    let newEndState = applyMove cap final mv
+        newMoves = mv : moves
+    in path { moves=newMoves, finalState=newEndState }
 
 -- Generate all possible new moves from a given state
-generateNewMoves :: State -> [Moves]
-generateNewMoves state@(State state) =
-    let nm1 = getNState state - 1
+-- Note what we give back is not a MoveList since it doesn't
+--  actually correspond to a coherent set.
+generateNewMoves :: State -> [Move]
+generateNewMoves st =
+    let nm1 = getNState st - 1
         empty_moves = [Empty j | j <- [0..nm1]]
         fill_moves = [Fill j | j <- [0..nm1]]
-        pour_moves = [Pour i j | i <- [0..nm1], j <- [0..nm1], i != j]
+        pour_moves = [Pour i j | i <- [0..nm1], j <- [0..nm1], i /= j]
     in empty_moves ++ fill_moves ++ pour_moves
