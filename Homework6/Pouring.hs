@@ -184,6 +184,23 @@ pathSetGetElem pset elem = Set.filter (\p -> pathElem p elem) pset
 pathSetElem :: PathSet -> Int -> Bool
 pathSetElem pset elem = not $ Set.null $ pathSetGetElem pset elem
 
+-- This solves the pouring problem starting from an initial empty state
+findPaths :: Capacity -> Int -> Maybe PathSet
+findPaths cap@(Capacity c) e
+          | Seq.null c = Nothing
+          | e < 0 = Nothing
+          | e == 0 && Fold.maximum c >= 0 = 
+              Just $ Set.singleton $ initialPath cap $ initialState cap 
+          | e > (Fold.maximum c) = Nothing
+findPaths cap e =
+    let init = initialState cap
+        initPathSet = Set.singleton $ initialPath cap init
+        initExplored = Set.singleton init
+        possiblePaths = generateAllNewPaths initPathSet initExplored
+        solvedPathSets = filter (\ps -> pathSetElem ps e) possiblePaths
+        solutionList = map (\ps -> pathSetGetElem ps e) solvedPathSets
+    in Just $ head solutionList
+
 -- Convert solutions into a string
 stringifySolutions :: PathSet -> [String]
 stringifySolutions paths | Set.null paths = []
@@ -193,21 +210,13 @@ stringifySolutions paths =
 -- Solve the pouring problem for initial empty state
 solvePouring :: [Int] -> Int -> Maybe String
 solvePouring [] _ = Nothing
-solvePouring c t | t < 0 = Nothing
-solvePouring c 0 = 
+solvePouring c e =
     let cap = listToCapacity c
-        ipath = initialPath cap (initialState cap)
-    in Just $ show ipath
-solvePouring c t | all (< 0) c && t > 0 = Nothing
-solvePouring c t =
-    let cap = listToCapacity c
-        init = initialState cap
-        initPathSet = Set.singleton $ initialPath cap init
-        initExplored = Set.singleton init
-        possiblePaths = generateAllNewPaths initPathSet initExplored
-        solvedPathSets = filter (\ps -> pathSetElem ps t) possiblePaths
-        solutionList = map (\ps -> pathSetGetElem ps t) solvedPathSets
-        solutionString = stringifySolutions $ head solutionList    
-    in Just $ concat $ intersperse " or " solutionString
+        solutions = findPaths cap e
+    in case solutions of
+         Nothing -> Nothing
+         Just sol -> 
+             let solutionString = stringifySolutions sol
+             in Just $ concat $ intersperse " -OR- " solutionString
     
     
