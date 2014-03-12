@@ -208,15 +208,15 @@ stringifySolutions paths =
     Fold.toList $ Set.map show paths
 
 -- Solve the pouring problem for initial empty state
-solvePouring :: [Int] -> Int -> Maybe String
-solvePouring [] _ = Nothing
+solvePouring :: [Int] -> Int -> String
+solvePouring [] _ = "No solution found"
 solvePouring c e =
     let cap = listToCapacity c
         solutions = findPaths cap e
     in case solutions of
-         Nothing -> Nothing
+         Nothing -> "No solutions found"
          Just sol -> 
              let solutionString = stringifySolutions sol
-             in Just $ concat $ intersperse " -OR- " solutionString
+             in concat $ intersperse " -OR- " solutionString
     
     
