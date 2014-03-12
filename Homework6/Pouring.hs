@@ -1,4 +1,4 @@
-module Pouring where
+module Pouring (solvePouring) where
 
 {-
   Water pouring problem
@@ -7,7 +7,7 @@ module Pouring where
 -}
 
 import Data.List (intersperse)
-import Data.Foldable (toList)
+import qualified Data.Foldable as Fold
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 
@@ -20,7 +20,7 @@ data State = State { getState :: Seq.Seq Int } deriving (Eq)
 instance (Show) Capacity where
     show (Capacity a) = 
         let n = Seq.length a
-        in show n ++ " bottles with capacity " ++ (show $ toList a)
+        in show n ++ " bottles with capacity " ++ (show $ Fold.toList a)
 
 instance (Ord) Capacity where
     compare (Capacity a) (Capacity b) = compare a b
@@ -28,7 +28,7 @@ instance (Ord) Capacity where
 instance (Show) State where
     show (State a) = 
         let n = Seq.length a
-        in show n ++ " bottles with state " ++ (show $ toList a)
+        in show n ++ " bottles with state " ++ (show $ Fold.toList a)
 
 instance (Ord) State where
     compare (State a) (State b) = compare a b
@@ -39,6 +39,10 @@ listToCapacity cs = Capacity $ Seq.fromList cs
 -- Get the initial state of all 0s
 initialState :: Capacity -> State
 initialState (Capacity a) = State $ Seq.replicate (Seq.length a) 0
+
+-- See if a specified final state is present in a state
+stateElem :: State -> Int -> Bool
+stateElem (State ss) elem = Fold.elem elem ss
 
 -- Move type: three types of moves
 --   Empty a glass
@@ -82,7 +86,7 @@ applyMove (Capacity cs) (State ss) (Pour from to) =
     in State $ Seq.update to (state_to + amount) update_from
 
 -- A move list is just a list of moves with the
--- most recent move at the end.
+-- most recent move at the head
 type MoveList = [Move]
 
 showMoves :: MoveList -> String
@@ -90,7 +94,8 @@ showMoves [] = ""
 showMoves mvs = concat $ intersperse ", " $ reverse $ map show mvs
 
 -- Given a capacity and an initial position, give the
--- final state for a MoveList
+--  final state for a MoveList.
+-- Recall that a MoveList is in reverse order, so use a foldr
 getEndState :: Capacity -> State -> MoveList -> State
 getEndState _ init [] = init
 getEndState cap init mvs = foldr (\mv st -> applyMove cap st mv) init mvs
@@ -102,7 +107,7 @@ data Path = Path { capacity :: Capacity, initState ::  State,
                    moves :: MoveList, finalState :: State } deriving (Eq)
 
 instance (Show) Path where
-    show path@(Path cap init [] _) = "Initial state " ++ show init
+    show path@(Path cap init [] _) = "Initial state: " ++ show init
     show path@(Path _ _ moves final) =
         showMoves moves ++ " --> " ++ show final
 
@@ -117,6 +122,9 @@ instance (Ord) Path where
                   LT -> LT
                   EQ -> i1 `compare` i2
 
+-- Generate an initial path
+initialPath :: Capacity -> State -> Path
+initialPath cap init = Path cap init [] init
 
 -- Add a new move to a path
 addMove :: Path -> Move -> Path
@@ -124,6 +132,14 @@ addMove path@(Path cap _ moves final) mv =
     let newEndState = applyMove cap final mv
         newMoves = mv : moves
     in path { moves=newMoves, finalState=newEndState }
+
+-- Apply a MoveList to a path
+applyMoves :: Path -> MoveList -> Path
+applyMoves initPath [] = initPath
+applyMoves path@(Path cap _ mvs final) moves = 
+    let newEndState = getEndState cap final moves
+        newMoveList = moves ++ mvs  -- append at front
+    in path { moves=newMoveList, finalState=newEndState }
 
 -- Generate all possible new moves from a given state
 -- Note what we give back is not a MoveList since it doesn't
@@ -156,3 +172,42 @@ generateAllNewPaths ps explored =
         newExplored = (Set.map finalState union) `Set.union` explored
     in union : generateAllNewPaths union newExplored
 
+-- check if a target state is in the final state of a path
+pathElem :: Path -> Int -> Bool
+pathElem path elem = stateElem (finalState path) elem
+
+-- Extract the actual paths that have the target state
+pathSetGetElem :: PathSet -> Int -> PathSet
+pathSetGetElem pset elem = Set.filter (\p -> pathElem p elem) pset
+
+-- check if a target state is in any final state of a PathSet
+pathSetElem :: PathSet -> Int -> Bool
+pathSetElem pset elem = not $ Set.null $ pathSetGetElem pset elem
+
+-- Convert solutions into a string
+stringifySolutions :: PathSet -> [String]
+stringifySolutions paths | Set.null paths = []
+stringifySolutions paths = 
+    Fold.toList $ Set.map show paths
+
+-- Solve the pouring problem for initial empty state
+solvePouring :: [Int] -> Int -> Maybe String
+solvePouring [] _ = Nothing
+solvePouring c t | t < 0 = Nothing
+solvePouring c 0 = 
+    let cap = listToCapacity c
+        ipath = initialPath cap (initialState cap)
+    in Just $ show ipath
+solvePouring c t | all (< 0) c && t > 0 = Nothing
+solvePouring c t =
+    let cap = listToCapacity c
+        init = initialState cap
+        initPathSet = Set.singleton $ initialPath cap init
+        initExplored = Set.singleton init
+        possiblePaths = generateAllNewPaths initPathSet initExplored
+        solvedPathSets = filter (\ps -> pathSetElem ps t) possiblePaths
+        solutionList = map (\ps -> pathSetGetElem ps t) solvedPathSets
+        solutionString = stringifySolutions $ head solutionList    
+    in Just $ concat $ intersperse " or " solutionString
+    
+    
