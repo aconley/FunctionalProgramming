@@ -1,4 +1,4 @@
-module GettingStarted (
+module FPInScala.GettingStarted (
     factorial,
     fibonacci,
     isSorted) where

@@ -1,7 +1,7 @@
-module Main (main) where
+module GSTests (gettingStarted_tests) where
 
 import Test.HUnit
-import GettingStarted
+import FPInScala.GettingStarted
 
 test_factorial = TestCase $ do
     assertEqual "factorial 5 should be 120" (factorial 5) 120
@@ -22,8 +22,6 @@ test_isSorted = TestCase $ do
     assertBool "Test list should not be sorted with <" (not $ isSorted (<) [1, 1])
     assertBool "Test list should be sorted with <=" (isSorted (<=) [1, 1, 1])
 
-
-tests = TestList [TestLabel "test factorial" test_factorial,
-                  TestLabel "test fibonacci" test_fibonnaci,
-                  TestLabel "test isSorted" test_isSorted]
-main = runTestTT tests
+gettingStarted_tests = TestList [TestLabel "test factorial" test_factorial,
+                                 TestLabel "test fibonacci" test_fibonnaci,
+                                 TestLabel "test isSorted" test_isSorted]
