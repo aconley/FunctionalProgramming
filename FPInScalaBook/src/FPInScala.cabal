@@ -16,7 +16,11 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     FPInScala, FPInScala.GettingStarted
+  exposed-modules:     
+     FPInScala, 
+     FPInScala.GettingStarted,
+     FPInScala.DataStructures,
+     FPInScala.DataStructures.List
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >= 4.7
@@ -28,7 +32,8 @@ test-suite tests
   main-is:             TestSuite.hs
   hs-source-dirs:      tests
   other-modules:
-    GSTests
+    GSTests,
+    ListTests
   build-depends:
     base == 4.*,
     HUnit >= 1.2,
