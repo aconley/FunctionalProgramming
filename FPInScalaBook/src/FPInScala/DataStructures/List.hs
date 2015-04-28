@@ -3,7 +3,11 @@ module FPInScala.DataStructures.List (
     setHead,
     mydrop,
     mydropWhile,
-    myinit)
+    myinit,
+    mylength,
+    foldLeftSum,
+    foldLeftLength,
+    reverseFold)
 where
 
 mytail :: [a] -> [a]
@@ -29,3 +33,22 @@ myinit :: [a] -> [a]
 myinit [x] = []
 myinit (x:xs) = x : init xs
 myinit [] = error "Can't take init of empty list"
+
+mylength :: [a] -> Int
+mylength xs = foldr (\_ y -> y + 1) 0 xs
+
+foldLeft :: [a] -> b -> (b -> a -> b) -> b
+foldLeft [] z f = z
+foldLeft (x:xs) z f = foldLeft xs (f z x) f
+
+foldLeftSum :: (Num a) => [a] -> a
+foldLeftSum xs = foldLeft xs 0 (+)
+
+foldLeftProduct :: (Num a) => [a] -> a
+foldLeftProduct xs = foldLeft xs 1 (*)
+
+foldLeftLength :: [a] -> Int
+foldLeftLength xs = foldLeft xs 0 (\x _ -> x + 1)
+
+reverseFold :: [a] -> [a]
+reverseFold xs = foldl (flip (:)) [] xs
