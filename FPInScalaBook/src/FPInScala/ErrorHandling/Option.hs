@@ -20,9 +20,6 @@ instance Applicative Option where
     Some f <*> m = fmap f m
     None <*> _ = None
 
-    Some _ *> m2 = m2
-    None *> _ = None
-
 instance Monad Option where
     Some x >>= f = f x
     None >>= _ = None
