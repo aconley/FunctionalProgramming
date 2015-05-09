@@ -2,7 +2,10 @@ module FPInScala.ErrorHandling.Option (
     Option(..),
     getOrElse,
     orElse,
-    optionFilter
+    optionFilter,
+    lift,
+    map2,
+    map2Alt
     ) where
 
 import Control.Applicative
@@ -41,3 +44,15 @@ orElse (Some x) _ = Some x
 optionFilter :: Option a -> (a -> Bool) -> Option a
 optionFilter (Some x) f | f x == True = Some x
                            | otherwise = None
+
+lift :: (a -> b) -> Option a -> Option b
+lift f = fmap f
+
+map2 :: (a -> b -> c) -> Option a -> Option b -> Option c
+map2 f x y = x >>= g
+    where g z = fmap (\xx -> f z xx) y
+
+map2Alt :: (a -> b -> c) -> Option a -> Option b -> Option c
+map2Alt _ None _ = None
+map2Alt _ _ None = None
+map2Alt f (Some x) (Some y) = Some $ f x y

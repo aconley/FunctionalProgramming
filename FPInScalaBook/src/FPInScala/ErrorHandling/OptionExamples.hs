@@ -2,7 +2,8 @@
 
 module FPInScala.ErrorHandling.OptionExamples (
     optMean,
-    optVariance) where
+    optVariance,
+    optAbs) where
 
 import FPInScala.ErrorHandling.Option
 
@@ -18,3 +19,6 @@ optVariance xs = do
     mn <- optMean xs
     var <- varX xs mn
     return var
+
+optAbs :: (Num a) => Option a -> Option a
+optAbs = lift abs

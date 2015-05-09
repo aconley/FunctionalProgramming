@@ -50,8 +50,28 @@ test_optionfuncs = TestCase $ do
     assertEqual "orElse should give argument when given non-None"
         (Some 'x') (orElse (Some 'x') (Some 'k'))
 
+test_optmean = TestCase $ do
+    assertEqual "optMean should return None for empty list"
+        None (optMean [])
+    assertEqual "optMean should work on non-empty list"
+        (Some 2.5) (optMean [1.0, 2.0, 3.0, 4.0])
+
+test_optvar = TestCase $ do
+    assertEqual "optVariance should return None for empty list"
+        None (optVariance [])
+    assertEqual "optVariance should work on non-empty lists"
+        (Some 1.25) (optVariance [1.0, 2.0, 3.0, 4.0])
+
+test_optabs = TestCase $ do
+    assertEqual "optAbs should return None for empty list"
+        None (optAbs None)
+    assertEqual "optAbs should work on actual value"
+        (Some 4) (optAbs (Some (-4)))
 
 option_tests = [TestLabel "test functor" test_functor,
                 TestLabel "test applicative" test_applicative,
                 TestLabel "test monad" test_monad,
-                TestLabel "test getOrElse" test_optionfuncs]
+                TestLabel "test getOrElse" test_optionfuncs,
+                TestLabel "test optMean" test_optmean,
+                TestLabel "test optVar" test_optvar,
+                TestLabel "test optAbs" test_optabs]
