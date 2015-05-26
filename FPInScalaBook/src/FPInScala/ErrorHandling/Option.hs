@@ -5,10 +5,19 @@ module FPInScala.ErrorHandling.Option (
     optionFilter,
     lift,
     map2,
-    map2Alt
+    map2Alt,
+    optSequence,
+    optTraverse,
+    optSeqTraverse
     ) where
 
 import Control.Applicative
+
+-- A number of the things we implement here are already
+--  in the prelude so we give them 'ugly' names like
+--  optFilter to avoid just piggybacking off the built
+--  in versions that come from making Option an instance
+--  of various typeclasses
 
 -- Maybe in Prelude
 data Option a = None | Some a deriving (Show, Eq)
@@ -56,3 +65,19 @@ map2Alt :: (a -> b -> c) -> Option a -> Option b -> Option c
 map2Alt _ None _ = None
 map2Alt _ _ None = None
 map2Alt f (Some x) (Some y) = Some $ f x y
+
+-- Note there's a built in version in Prelude
+optSequence :: [Option a] -> Option [a]
+optSequence [] = Some [] :: Option [a]
+optSequence (x:xs) = x >>= g
+    where g y = fmap (\z -> y:z) $ optSequence xs
+
+-- Also a built in Prelude version
+optTraverse :: (a -> Option b) -> [a] -> Option [b]
+optTraverse _ [] = Some [] :: Option [b]
+optTraverse f (x:xs) = map2 g (f x) (optTraverse f xs)
+    where g p q = p : q
+
+-- Sequence in terms of traverse
+optSeqTraverse :: [Option a] -> Option [a]
+optSeqTraverse = optTraverse id

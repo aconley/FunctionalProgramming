@@ -68,10 +68,31 @@ test_optabs = TestCase $ do
     assertEqual "optAbs should work on actual value"
         (Some 4) (optAbs (Some (-4)))
 
+test_optsequence = TestCase $ do
+    assertEqual "optSequence should return None if any None values"
+        None (optSequence [Some 'a', Some 'b', None, Some 'c'])
+    assertEqual "optSequence should return Some of concatenated list if no Nones"
+        (Some ['a', 'b', 'c']) (optSequence [Some 'a', Some 'b', Some 'c'])
+
+test_opttraverse = TestCase $ do
+    assertEqual "optTraverse should evaluate to None if any Nones encountered"
+        None (optTraverse monadfunc [1, 2, 3, 4, -1, 4])
+    assertEqual "optTraverse should return as Some if no Nones are encountered"
+        (Some [2, 3, 4, 12]) (optTraverse monadfunc [1, 2, 3, 11])
+
+test_optseqtraverse = TestCase $ do
+    assertEqual "optSeqTraverse should return None if any None values"
+        None (optSeqTraverse [Some 'a', Some 'b', None, Some 'c'])
+    assertEqual "optSeqTraverse should return Some of concatenated list if no Nones"
+        (Some ['a', 'b', 'c']) (optSeqTraverse [Some 'a', Some 'b', Some 'c'])
+
 option_tests = [TestLabel "test functor" test_functor,
                 TestLabel "test applicative" test_applicative,
                 TestLabel "test monad" test_monad,
                 TestLabel "test getOrElse" test_optionfuncs,
                 TestLabel "test optMean" test_optmean,
                 TestLabel "test optVar" test_optvar,
-                TestLabel "test optAbs" test_optabs]
+                TestLabel "test optAbs" test_optabs,
+                TestLabel "test optSequence" test_optsequence,
+                TestLabel "test optTraverse" test_opttraverse,
+                TestLabel "test optSeqTraverse" test_optseqtraverse]
