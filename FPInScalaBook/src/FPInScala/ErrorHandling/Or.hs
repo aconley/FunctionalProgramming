@@ -1,7 +1,9 @@
 module FPInScala.ErrorHandling.Or (
     Or(..),
     orElse,
-    map2
+    map2,
+    orSequence,
+    orTraverse
     ) where
 
 import Control.Applicative
@@ -38,4 +40,11 @@ map2 _ (First x) _ = First x
 map2 _ _ (First x) = First x
 map2 f (Second x) (Second y) = Second $ f x y
 
+-- Built in Prelude version of traverse, so use different name
+orTraverse :: (a -> Or e b) -> [a] -> Or e [b]
+orTraverse _ [] = Second [] :: Or e [b]
+orTraverse f (x:xs) = map2 g (f x) (orTraverse f xs)
+    where g p q = p : q
 
+orSequence :: [Or e a] -> Or e [a]
+orSequence = orTraverse id
