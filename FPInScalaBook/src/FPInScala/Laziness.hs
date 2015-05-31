@@ -12,7 +12,11 @@ module FPInScala.Laziness (
     fibsUnfold,
     fromUnfold,
     constantUnfold,
-    onesUnfold
+    onesUnfold,
+    mapUnfold,
+    takeUnfold,
+    zipWithUnfold,
+    zipAll
     ) where
 
 -- This chapter is a touch silly in Haskell, since
@@ -88,3 +92,31 @@ constantUnfold v = unfold v (\vv -> Just(vv, vv))
 -- ones using unfold
 onesUnfold :: [Int]
 onesUnfold = constantUnfold 1
+
+-- map via unfold
+mapUnfold :: (a -> b) -> [a] -> [b]
+mapUnfold f as = unfold as g
+    where g [] = Nothing
+          g (a:aa) = Just (f a, aa)
+
+-- take via unfold
+takeUnfold :: Int -> [a] -> [a]
+takeUnfold n as = unfold (n, as) g
+    where g (0, _) = Nothing
+          g (m, (a:aa)) = Just (a, (m-1, aa))
+
+-- zipWith via unfold
+zipWithUnfold :: (a -> b -> c) -> [a] -> [b] -> [c]
+zipWithUnfold f as bs = unfold (as, bs) g
+    where g ([], _) = Nothing
+          g (_, []) = Nothing
+          g ((aa:aas), (bb:bbs)) = Just (f aa bb, (aas, bbs))
+
+-- zipAll via unfold
+zipAll :: [a] -> [b] -> [(Maybe a, Maybe b)]
+zipAll as bs = unfold (as, bs) g
+    where g ((aa:aas, bb:bbs)) = Just ((Just aa, Just bb), (aas, bbs))
+          g ([], []) = Nothing
+          g ([], (bb:bbs)) = Just ((Nothing, Just bb), ([], bbs))
+          g ((aa:aas), []) = Just ((Just aa, Nothing), (aas, []))
+

@@ -70,6 +70,18 @@ test_unfold = TestCase $ do
         ([3, 3]) (myTake 2 $ constantUnfold 3)
     assertEqual "fromUnfold should produce the expected ascending sequence"
         (take 20 [3..]) (myTake 20 $ fromUnfold 3)
+    assertEqual "mapUnfold should work like map"
+        (map (*2) [1, 2, 3, 4]) (mapUnfold (*2) [1, 2, 3, 4])
+    assertEqual "takeUnfold should work like take"
+        (take 10 [4..]) (takeUnfold 10 [4..])
+    assertEqual "zipWithUnfold should work like zipWith"
+        (zipWith (+) [1..7] [9..11]) (zipWithUnfold (+) [1..7] [9..11])
+    assertEqual "zipAll should zip as expected"
+        ([(Just 2, Just 3), (Just 4, Nothing)])
+        (zipAll [2, 4] [3])
+    assertEqual "zipAll should zip as expected"
+        ([(Just 2, Just 3), (Nothing, Just 11)])
+        (zipAll [2] [3, 11])
 
 
 laziness_tests = [TestLabel "test myTake" test_mytake,
