@@ -24,13 +24,12 @@ test_mydrop = TestCase $ do
         [4..10] (myDrop 4 [0..10])
 
 test_infinite = TestCase $ do
-    assertEqual "ones should consist of ones"
+    assertEqual "ones should consist of 1s"
         ([1, 1, 1, 1]) (myTake 4 ones)
     assertEqual "constant should consist of expected constant"
         ([3, 3]) (myTake 2 $ constant 3)
     assertEqual "from should produce the expected ascending sequence"
         (take 20 [3..]) (myTake 20 $ from 3)
-
 
 test_mytakewhile = TestCase $ do
     assertEqual "myTakeWhile should return an empty list when given one"
@@ -56,10 +55,28 @@ test_takewhilefoldr = TestCase $ do
     assertEqual "takeWhileViaFoldr should return the expected elements"
         [0..3] (takeWhileViaFoldr (< 4) [0..10])
 
+test_fibs = TestCase $ do
+    assertEqual "First 13 elements of fibs should be as expected"
+        [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144]
+        (myTake 13 fibs)
+
+test_unfold = TestCase $ do
+    assertEqual "First 13 elements of fibsUnfold should be as expected"
+        [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144]
+        (myTake 13 fibsUnfold)
+    assertEqual "onesUnfold should consist of 1s"
+        ([1, 1, 1, 1]) (myTake 4 onesUnfold)
+    assertEqual "constantUnfold should consist of expected constant"
+        ([3, 3]) (myTake 2 $ constantUnfold 3)
+    assertEqual "fromUnfold should produce the expected ascending sequence"
+        (take 20 [3..]) (myTake 20 $ fromUnfold 3)
+
 
 laziness_tests = [TestLabel "test myTake" test_mytake,
                   TestLabel "test myDrop" test_mydrop,
                   TestLabel "test myTakeWhile" test_mytakewhile,
                   TestLabel "test forAll" test_forall,
                   TestLabel "test takeWhileViaFoldr" test_takewhilefoldr,
-                  TestLabel "test infinite sequences" test_infinite]
+                  TestLabel "test infinite sequences" test_infinite,
+                  TestLabel "test Fibonacci generator" test_fibs,
+                  TestLabel "test unfold" test_unfold]

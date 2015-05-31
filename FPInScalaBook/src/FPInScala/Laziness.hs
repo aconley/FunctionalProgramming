@@ -6,7 +6,13 @@ module FPInScala.Laziness (
     takeWhileViaFoldr,
     ones,
     constant,
-    from
+    from,
+    fibs,
+    unfold,
+    fibsUnfold,
+    fromUnfold,
+    constantUnfold,
+    onesUnfold
     ) where
 
 -- This chapter is a touch silly in Haskell, since
@@ -53,3 +59,32 @@ constant v = v : constant v
 from :: Int -> [Int]
 from x = x : from (x + 1)
 
+-- Generate fibonacci sequence
+fibs :: [Int]
+fibs = fibInner 0 1
+    where fibInner a b = a : fibInner b (a + b)
+
+-- corecursive generator: given an initial state (s), produce the
+-- next value in a list as well as the new state.  The user
+-- provides a function to do so that returns Nothing if the sequence
+-- terminates.  We use the built in Maybe rather than our own Option type
+unfold :: s -> (s -> Maybe (a, s)) -> [a]
+unfold z f = case f z of
+    Nothing -> []
+    Just (aa, ss) -> aa : unfold ss f
+
+-- fibs using unfold
+fibsUnfold :: [Int]
+fibsUnfold = unfold (0, 1) (\(a, b) -> Just (a, (b, a + b)))
+
+-- from using unfold
+fromUnfold :: Int -> [Int]
+fromUnfold x = unfold x (\xx -> Just (xx, xx + 1))
+
+-- const using unfold
+constantUnfold :: a -> [a]
+constantUnfold v = unfold v (\vv -> Just(vv, vv))
+
+-- ones using unfold
+onesUnfold :: [Int]
+onesUnfold = constantUnfold 1
