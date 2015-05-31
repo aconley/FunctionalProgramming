@@ -24,7 +24,8 @@ library
      FPInScala.DataStructures.Tree
      FPInScala.ErrorHandling.Option
      FPInScala.ErrorHandling.OptionExamples
-     FPInScala.ErrorHandling.Or
+     FPInScala.ErrorHandling.Or,
+     FPInScala.Laziness
   -- other-modules:
   -- other-extensions:
   build-depends:       base >= 4.7
@@ -39,7 +40,8 @@ test-suite tests
     GSTests,
     ListTests,
     TreeTests,
-    OptionTests
+    OptionTests,
+    LazinessTests
   build-depends:
     test-framework,
     test-framework-hunit,
