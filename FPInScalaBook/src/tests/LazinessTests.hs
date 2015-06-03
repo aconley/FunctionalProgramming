@@ -83,6 +83,20 @@ test_unfold = TestCase $ do
         ([(Just 2, Just 3), (Nothing, Just 11)])
         (zipAll [2] [3, 11])
 
+test_startswith = TestCase $ do
+    assertBool "[1, 3, 7, 9] does start with [1, 3]"
+        (startsWith [1, 3, 7, 9] [1, 3])
+    assertBool "[1, 3, 7, 9] does not start with [3, 7]"
+        (not $ startsWith [1, 3, 7, 9] [3, 7])
+
+test_hassubsequence = TestCase $ do
+    assertBool "[1, 3, 7, 9] does contain [3, 7]"
+        (hasSubsequence [1, 3, 7, 9] [3, 7])
+    assertBool "[1, 3, 7, 9] does not contain [10, 3, 1]"
+        (not $ startsWith [1, 3, 7, 9] [10, 3, 1])
+    assertBool "[1, 3, 7, 9] does not contain [3, 9] in order"
+        (not $ hasSubsequence [1, 3, 7, 9] [3, 9])
+
 
 laziness_tests = [TestLabel "test myTake" test_mytake,
                   TestLabel "test myDrop" test_mydrop,
@@ -91,4 +105,6 @@ laziness_tests = [TestLabel "test myTake" test_mytake,
                   TestLabel "test takeWhileViaFoldr" test_takewhilefoldr,
                   TestLabel "test infinite sequences" test_infinite,
                   TestLabel "test Fibonacci generator" test_fibs,
-                  TestLabel "test unfold" test_unfold]
+                  TestLabel "test unfold" test_unfold,
+                  TestLabel "test startsWith" test_startswith,
+                  TestLabel "test hasSubsequence" test_hassubsequence]

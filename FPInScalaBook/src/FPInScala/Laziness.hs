@@ -16,11 +16,17 @@ module FPInScala.Laziness (
     mapUnfold,
     takeUnfold,
     zipWithUnfold,
-    zipAll
+    zipAll,
+    startsWith,
+    hasSubsequence
     ) where
 
+import Data.Maybe (isJust)
+import Data.List (tails)
+
 -- This chapter is a touch silly in Haskell, since
--- it is lazy by default.
+-- it is lazy by default.  But some of the exercises
+-- are interesting
 
 myTake :: Int -> [a] -> [a]
 myTake _ [] = []
@@ -120,3 +126,11 @@ zipAll as bs = unfold (as, bs) g
           g ([], (bb:bbs)) = Just ((Nothing, Just bb), ([], bbs))
           g ((aa:aas), []) = Just ((Just aa, Nothing), (aas, []))
 
+-- Check if one list starts with another
+startsWith :: Eq a => [a] -> [a] -> Bool
+startsWith xs ys = forAll (\(x, y) -> x == y) z
+    where z = takeWhile (\t -> isJust $ snd t) w
+          w = zipAll xs ys
+
+hasSubsequence :: Eq a => [a] -> [a] -> Bool
+hasSubsequence s subs = any (\ss -> startsWith ss subs) $ tails s
