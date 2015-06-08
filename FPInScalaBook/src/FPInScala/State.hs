@@ -4,7 +4,8 @@ module FPInScala.State (
     nonNegativeInt,
     getUniformDouble,
     ints,
-    State(..)
+    State(..),
+    stateSimpleRNG
     ) where
 
 import Data.Word (Word64)
@@ -64,3 +65,15 @@ instance Applicative (State s) where
     f' <- f
     x' <- x
     return (f' x')
+
+-- Now, reimplement the RNG types using the State monad
+stateSimpleRNG :: State SimpleRNG Int
+stateSimpleRNG = State nextInt
+
+convertInt :: Int -> Int
+convertInt n = if (n < 0) then (-(n + 1)) else n
+
+stateNonNegativeInt :: (RNG a) => a -> State a Int
+stateNonNegativeInt s = fmap convertInt (State nextInt)
+
+
