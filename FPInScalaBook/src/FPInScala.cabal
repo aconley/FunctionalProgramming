@@ -26,7 +26,8 @@ library
      FPInScala.ErrorHandling.OptionExamples
      FPInScala.ErrorHandling.Or,
      FPInScala.Laziness,
-     FPInScala.State
+     FPInScala.State.Random,
+     FPInScala.State.StateMonad
   -- other-modules:
   -- other-extensions:
   build-depends:       base >= 4.7

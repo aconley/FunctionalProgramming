@@ -1,7 +1,7 @@
 module StateTests (state_tests) where
 
 import Test.HUnit
-import FPInScala.State
+import FPInScala.State.Random
 import Data.Word (Word64)
 
 test_ints = TestCase $ do
