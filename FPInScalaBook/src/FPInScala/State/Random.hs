@@ -8,6 +8,17 @@ module FPInScala.State.Random (
 
 import Data.Word (Word64)
 import Data.Bits (shiftR)
+
+-- There are a couple ways to do this:
+--  Follow something like System.Random
+--   and define sources of randomness and things
+--   to take randomness and produce variables
+--  A different method is to work with something
+--   more like the State monad
+--  The former is probably easier to understand, the
+--   latter allows more combination, etc.
+
+-- First: lets take the System.Random approach:
 -- Definine random number generators in terms of
 -- their ability to make random integers
 -- See System.Random for a more serious implementation
@@ -40,6 +51,11 @@ instance Random PositiveInt where
                    val = if (v < 0) then (-(v+1)) else v
                 in (PositiveInt val, newr)
   getRange = (PositiveInt 0, PositiveInt (maxBound :: Int))
+
+instance Random Bool where
+  generate r = (v <= 0, newr)
+    where (v, newr) = nextInt r
+  getRange = (False, True)
 
 instance Random Double where
   generate r = (v / maxval, newr)
