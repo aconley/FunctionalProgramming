@@ -2,8 +2,19 @@ module FPInScala.State.Random (
     RNG,
     Random,
     SimpleRNG(..),
+    NumRecRNG,
+    numRecRNG,
     PositiveInt,
     ints,
+    Rand(..),
+    randInt,
+    unit,
+    rMap,
+    nonNegativeInt,
+    nonNegativeIntEven,
+    randDouble,
+    rMap2,
+    both
     ) where
 
 import Data.Word (Word64)
@@ -31,7 +42,7 @@ class Random a where
   getRange :: (a, a)
 
 -- Simple LCG RNG
-data SimpleRNG = SimpleRNG Word64
+data SimpleRNG = SimpleRNG Word64 deriving (Eq, Show)
 
 instance RNG SimpleRNG where
     nextInt (SimpleRNG s) = (n, SimpleRNG newSeed)
@@ -42,7 +53,7 @@ instance RNG SimpleRNG where
 
 -- Here's a more serious random number generator
 --  from Numerical Recipes 3rd edition
-data NumRecRNG = NumRecRNG (Word64, Word64, Word64)
+data NumRecRNG = NumRecRNG (Word64, Word64, Word64) deriving (Eq, Show)
 
 int64 :: NumRecRNG -> (Word64, NumRecRNG)
 int64 (NumRecRNG (u, v, w)) = let umult = 2862933555777941757 :: Word64
@@ -57,7 +68,7 @@ int64 (NumRecRNG (u, v, w)) = let umult = 2862933555777941757 :: Word64
                                   x1 = unew `xor` (shiftL unew 21)
                                   x2 = x1 `xor` (shiftR x1 35)
                                   x3 = x2 `xor` (shiftL x2 4)
-                                  x = (x + vnew) `xor` wnew
+                                  x = (x3 + vnew) `xor` wnew
                               in (x, NumRecRNG (unew, vnew, wnew))
 
 
@@ -67,9 +78,9 @@ numRecRNG seed = let v = 4101842887655102017 :: Word64
                      w = 1 :: Word64
                      u = seed `xor` v
                      gen1 = NumRecRNG (u, v, w)
-                     NumRecRNG (u2, v2, w2) = snd $ int64 gen1
+                     NumRecRNG (u2, _, w2) = snd $ int64 gen1
                      gen2 = NumRecRNG (u2, u2, w2)
-                     NumRecRNG (u3, v3, w3) = snd $ int64 gen2
+                     NumRecRNG (u3, v3, _) = snd $ int64 gen2
                      gen3 = NumRecRNG (u3, v3, v3)
                  in snd $ int64 gen3
 
@@ -108,3 +119,39 @@ ints r n = f r n []
                    | otherwise = f newrnd (m - 1) (x : xs)
            where (x, newrnd) = nextInt rnd
 
+-- Alternative approach: much more state like
+--  generate is a function that takes a RNG
+--  and uses it to produce a random number and
+--  new RNG
+data Rand r a = Rand { generateR :: r -> (a, r)}
+
+unit :: (RNG r) => a -> Rand r a
+unit v = Rand $ \rng -> (v, rng)
+
+randInt :: Rand SimpleRNG Int
+randInt = Rand nextInt
+
+rMap :: (a -> b) -> Rand r a -> Rand r b
+rMap g (Rand f) = Rand $ \rng -> let (v1, rng2) = f rng
+                                 in (g v1, rng2)
+
+rMap2 :: (a -> b -> c) -> Rand r a -> Rand r b -> Rand r c
+rMap2 f (Rand g) (Rand h) = Rand $ \rng -> let (va, rng2) = g rng
+                                               (vb, rng3) = h rng2
+                                           in (f va vb, rng3)
+
+nonNegativeInt :: Rand SimpleRNG Int
+nonNegativeInt = rMap p randInt
+  where p v = if (v < 0) then (-(v+1)) else v
+
+nonNegativeIntEven :: Rand SimpleRNG Int
+nonNegativeIntEven = rMap g nonNegativeInt
+    where g i = i - i `mod` 2
+
+randDouble :: Rand SimpleRNG Double
+randDouble = rMap d randInt
+  where d v = let maxval = (fromIntegral (maxBound :: Int) :: Double) + 1.0
+              in (fromIntegral v :: Double) / maxval
+
+both :: Rand r a -> Rand r b -> Rand r (a, b)
+both = rMap2 (\va vb -> (va, vb))
