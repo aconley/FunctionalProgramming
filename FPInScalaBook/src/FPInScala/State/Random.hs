@@ -14,7 +14,10 @@ module FPInScala.State.Random (
     nonNegativeIntEven,
     randDouble,
     rMap2,
-    both
+    both,
+    sequenceR,
+    flatMap,
+    nonNegativeLessThan
     ) where
 
 import Data.Word (Word64)
@@ -155,3 +158,21 @@ randDouble = rMap d randInt
 
 both :: Rand r a -> Rand r b -> Rand r (a, b)
 both = rMap2 (\va vb -> (va, vb))
+
+sequenceR :: [Rand r a] -> Rand r [a]
+sequenceR fs = Rand $ \rng -> sequenceR' fs rng []
+  where sequenceR' [] rgen acc = (acc, rgen)
+        sequenceR' (x:xs) rgen acc = let (newval, newr) = generateR x $ rgen
+                                     in sequenceR' xs newr (newval : acc)
+
+flatMap :: Rand r a -> (a -> Rand r b) -> Rand r b
+flatMap (Rand f) g = Rand $ \rng -> let (va, rng2) = f rng
+                                    in (generateR $ g va) rng2
+
+nonNegativeLessThan :: Int -> Rand SimpleRNG Int
+nonNegativeLessThan 0 = unit 0
+nonNegativeLessThan n | n < 0 = error "Can't have negative n"
+nonNegativeLessThan n = flatMap nonNegativeInt f
+                        where f i = let m = i `mod` n
+                                    in if ((i + (n - 1) - m) >= 0) then unit m
+                                       else nonNegativeLessThan n
