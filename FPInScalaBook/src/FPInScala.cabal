@@ -27,7 +27,8 @@ library
      FPInScala.ErrorHandling.Or,
      FPInScala.Laziness,
      FPInScala.State.Random,
-     FPInScala.State.StateMonad
+     FPInScala.State.StateMonad,
+     FPInScala.State.CandyMachine
   -- other-modules:
   -- other-extensions:
   build-depends:       base >= 4.7
@@ -43,7 +44,8 @@ test-suite tests
     ListTests,
     TreeTests,
     OptionTests,
-    LazinessTests
+    LazinessTests,
+    CandymachineTests
   build-depends:
     test-framework,
     test-framework-hunit,

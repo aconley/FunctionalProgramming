@@ -11,9 +11,11 @@ import OptionTests (option_tests)
 import OrTests (or_tests)
 import LazinessTests (laziness_tests)
 import StateTests (state_tests)
+import CandyMachineTests (candy_machine_tests)
 
 all_tests = gettingStarted_tests ++ list_tests ++ tree_tests ++
-    option_tests ++ or_tests ++ laziness_tests ++ state_tests
+    option_tests ++ or_tests ++ laziness_tests ++ state_tests ++
+    candy_machine_tests
 tests = hUnitTestToTests $ TestList all_tests
 
 main = defaultMain tests
