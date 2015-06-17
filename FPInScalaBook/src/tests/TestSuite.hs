@@ -10,10 +10,12 @@ import TreeTests (tree_tests)
 import OptionTests (option_tests)
 import OrTests (or_tests)
 import LazinessTests (laziness_tests)
-import StateTests (state_tests)
+import RandomTests (random_tests)
+import StateMonadTests (state_tests)
 
 all_tests = gettingStarted_tests ++ list_tests ++ tree_tests ++
-    option_tests ++ or_tests ++ laziness_tests ++ state_tests
+    option_tests ++ or_tests ++ laziness_tests ++ random_tests ++
+    state_tests
 tests = hUnitTestToTests $ TestList all_tests
 
 main = defaultMain tests

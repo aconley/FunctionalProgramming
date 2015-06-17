@@ -43,7 +43,9 @@ test-suite tests
     ListTests,
     TreeTests,
     OptionTests,
-    LazinessTests
+    LazinessTests,
+    RandomTests,
+    StateMonadTests
   build-depends:
     test-framework,
     test-framework-hunit,

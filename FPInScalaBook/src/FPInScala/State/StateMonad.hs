@@ -1,5 +1,10 @@
 module FPInScala.State.StateMonad (
     State(..),
+    fmap,
+    return,
+    (>>=),
+    pure,
+    (<*>),
     mapS2,
     sequenceS
     ) where

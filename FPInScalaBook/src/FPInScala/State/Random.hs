@@ -1,8 +1,11 @@
 module FPInScala.State.Random (
     RNG,
+    nextInt,
     Random,
+    generate,
+    getRange,
     SimpleRNG(..),
-    NumRecRNG,
+    NumRecRNG(..),
     numRecRNG,
     PositiveInt,
     ints,
@@ -21,6 +24,7 @@ module FPInScala.State.Random (
     ) where
 
 import Data.Word (Word64)
+import Data.Int (Int64)
 import Data.Bits (shiftL, shiftR, xor, (.&.))
 
 -- There are a couple ways to do this:
@@ -45,12 +49,12 @@ class Random a where
   getRange :: (a, a)
 
 -- Simple LCG RNG
-data SimpleRNG = SimpleRNG Word64 deriving (Eq, Show)
+data SimpleRNG = SimpleRNG Int64 deriving (Eq, Show)
 
 instance RNG SimpleRNG where
     nextInt (SimpleRNG s) = (n, SimpleRNG newSeed)
-        where m = 0x5DEECE66D :: Word64
-              b = 0xB :: Word64
+        where m = 0x5DEECE66D :: Int64
+              b = 0xB :: Int64
               newSeed = m * s + b
               n = fromIntegral $ shiftR newSeed 16
 
@@ -58,21 +62,21 @@ instance RNG SimpleRNG where
 --  from Numerical Recipes 3rd edition
 data NumRecRNG = NumRecRNG (Word64, Word64, Word64) deriving (Eq, Show)
 
-int64 :: NumRecRNG -> (Word64, NumRecRNG)
-int64 (NumRecRNG (u, v, w)) = let umult = 2862933555777941757 :: Word64
-                                  uplus = 7046029254386353087 :: Word64
-                                  unew = umult * u + uplus
-                                  v1 = v `xor` (shiftR v 17)
-                                  v2 = v1 `xor` (shiftL v1 31)
-                                  vnew = v2 `xor` (shiftR v2 8)
-                                  wmult = 4294957665 :: Word64
-                                  wand =  0xffffffff :: Word64
-                                  wnew = wmult * (w .&. wand) + (shiftR w 32)
-                                  x1 = unew `xor` (shiftL unew 21)
-                                  x2 = x1 `xor` (shiftR x1 35)
-                                  x3 = x2 `xor` (shiftL x2 4)
-                                  x = (x3 + vnew) `xor` wnew
-                              in (x, NumRecRNG (unew, vnew, wnew))
+word64 :: NumRecRNG -> (Word64, NumRecRNG)
+word64 (NumRecRNG (u, v, w)) = let umult = 2862933555777941757 :: Word64
+                                   uplus = 7046029254386353087 :: Word64
+                                   unew = umult * u + uplus
+                                   v1 = v `xor` (shiftR v 17)
+                                   v2 = v1 `xor` (shiftL v1 31)
+                                   vnew = v2 `xor` (shiftR v2 8)
+                                   wmult = 4294957665 :: Word64
+                                   wand =  0xffffffff :: Word64
+                                   wnew = wmult * (w .&. wand) + (shiftR w 32)
+                                   x1 = unew `xor` (shiftL unew 21)
+                                   x2 = x1 `xor` (shiftR x1 35)
+                                   x3 = x2 `xor` (shiftL x2 4)
+                                   x = (x3 + vnew) `xor` wnew
+                               in (x, NumRecRNG (unew, vnew, wnew))
 
 
 -- Smart constructor from seed for NumRecRNG
@@ -81,14 +85,14 @@ numRecRNG seed = let v = 4101842887655102017 :: Word64
                      w = 1 :: Word64
                      u = seed `xor` v
                      gen1 = NumRecRNG (u, v, w)
-                     NumRecRNG (u2, _, w2) = snd $ int64 gen1
+                     NumRecRNG (u2, _, w2) = snd $ word64 gen1
                      gen2 = NumRecRNG (u2, u2, w2)
-                     NumRecRNG (u3, v3, _) = snd $ int64 gen2
+                     NumRecRNG (u3, v3, _) = snd $ word64 gen2
                      gen3 = NumRecRNG (u3, v3, v3)
-                 in snd $ int64 gen3
+                 in snd $ word64 gen3
 
 instance RNG NumRecRNG where
-  nextInt r = let (n, newr) = int64 r
+  nextInt r = let (n, newr) = word64 r
               in (fromIntegral n :: Int, newr)
 
 -- Now instances of Random
