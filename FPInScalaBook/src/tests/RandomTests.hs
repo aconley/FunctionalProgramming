@@ -43,8 +43,34 @@ test_generateR = TestCase $ do
     assertEqual "SimpleRNG should generate expected nonNegativeEven int"
         (71247759271292) (fst . generateR nonNegativeIntEven $ rng)
 
+test_rmap = TestCase $ do
+    let rng = SimpleRNG 111
+        rm = rMap (*2) randInt
+    assertEqual "rMap should apply specified function"
+        (2 * (fst $ generateR randInt rng)) (fst $ generateR rm rng)
+
+
+test_rmap2 = TestCase $ do
+    let rng = SimpleRNG 3932019
+        st1 = generateR randInt rng
+        st2 = generateR randInt $ snd st1
+        rm = rMap2 (+) randInt randInt
+    assertEqual "rMap2 should apply add between randInts"
+        (fst st1 + fst st2) (fst $ generateR rm rng)
+
+test_sequencer = TestCase $ do
+    let rng = SimpleRNG 201023
+        rs = [randInt, nonNegativeIntEven, randInt]
+        sq = sequenceR rs
+    assertEqual "sequenceR should chain Rands"
+        ([136909463281443, 1523263768642, 77343378144])
+        (fst $ generateR sq rng)
+
 random_tests = [TestLabel "test ints" test_ints,
                 TestLabel "test SimpleRNG" test_simple,
                 TestLabel "test NumRecRNG" test_numrec,
                 TestLabel "test generate" test_generate,
-                TestLabel "test generateR" test_generateR]
+                TestLabel "test generateR" test_generateR,
+                TestLabel "test rMap" test_rmap,
+                TestLabel "test rMap2" test_rmap2,
+                TestLabel "test sequenceR" test_sequencer]
